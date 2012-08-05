@@ -100,13 +100,11 @@ def main():
     argparser.add_argument('url',  help='Initial url')
     argparser.add_argument('-l',   dest='links_regexp',   metavar='LINKS',      help='Process ONLY links that match this regular expression')
     argparser.add_argument('-g',   dest='grab_regexp',    metavar='GRAB',       help='Search links that match this regular expression')
+    argparser.add_argument('-a',   dest='amount',         metavar='AMOUNT',     help='Stop after grabbing N links', type=bool)
     argparser.add_argument('-t',   dest='threads_count',  metavar='THREADS',    help='Number or simultaneous threads', type=int)
     argparser.add_argument('-ll',  dest='log_level',      metavar='LOGLEVEL',   help='Level of output', type=int, choices=xrange(0, 51))
     argparser.add_argument('-st',  dest='show_timer',     metavar='SHOWTIMER',  help='Show timer after finish', type=bool)
     argparser.set_defaults(
-        #url           = 'http://fotki.yandex.ru/top/',
-        #links_regexp  = 'http://fotki.yandex.ru/top/users/.+?/view/\d+',
-        #search_regexp = '(http://img-fotki.yandex.ru/get/.+orig)\"',
         threads_count = 10,
         log_level     = 0,
         show_timer    = True
@@ -138,8 +136,11 @@ def main():
     map(lambda w: w.start(), workers)
 
     timer_start = time.time()
-    while any(not w.is_sleeping for w in workers):
-        time.sleep(1)
+    try:
+        while any(not w.is_sleeping for w in workers):
+            time.sleep(1)
+    except KeyboardInterrupt:
+        exit(0)
     timer_end = time.time()
 
     map(lambda w: w.stop(), workers) #Send the termination signal
@@ -154,3 +155,4 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print "Interrupted by user"
+        exit(0)
