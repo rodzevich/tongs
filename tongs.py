@@ -8,13 +8,14 @@ import os, sys, time, re, logging
 #------------------------------------------------------------------------------
 class Spider(Thread):
     def __init__(self, number, queue, settings):
+        Thread.__init__(self)
+        self._sig_term    = Event()
+        self._is_sleeping = False
+        self.daemon       = True
+
         self._number      = number
         self._queue       = queue
         self._settings    = settings
-
-        self._is_sleeping = False
-        self._sig_term    = Event()
-        Thread.__init__(self)
 
     @property
     def is_sleeping(self):
@@ -72,7 +73,6 @@ class UrlsQueue(object):
     def __init__(self):
         self._in_queue  = set()
         self._out_queue = set()
-
         self._lock = Lock()
 
     def get(self):
@@ -153,6 +153,6 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, SystemExit):
         print "Interrupted by user"
         exit(0)
